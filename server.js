@@ -1,15 +1,15 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const path = require('path'); // Naya add kiya file paths handle karne ke liye
+const path = require('path'); 
 const { MongoMemoryServer } = require('mongodb-memory-server');
 
 const app = express();
 
-// PORT Setting: Render automatic process.env.PORT deta hai, local par 6500 chalega
+// PORT Setting: Render automatic process.env.PORT (10000) deta hai, local par 6500 chalega
 const PORT = process.env.PORT || 6500; 
 
-// Aggressive CORS policy taaki browser error na de
+// Aggressive CORS policy taaki browser/domain dynamic cross-origin error na de
 app.use(cors({
     origin: '*',
     methods: ['GET', 'POST'],
@@ -18,17 +18,22 @@ app.use(cors({
 app.use(express.json());
 
 // ========================================================
-// ⚡ FRONTEND SERVING LOGIC (FIXED FOR FRONTEND FOLDER)
+// ⚡ FRONTEND SERVING LOGIC ( Foolproof Absolute Path )
 // ========================================================
-// 1. Isse public static files serve hongi
-app.use(express.static(__dirname));
-
-// Naya static path taaki frontend folder ke andar ki CSS/Images bhi load ho sakein
+// 1. Pure root aur frontend static folders ko bind karein taaki CSS, Images sahi se serve ho sakein
+app.use(express.static(path.join(__dirname)));
 app.use('/frontend', express.static(path.join(__dirname, 'frontend')));
 
-// 2. Jab koi direct tivrapay.store kholega, toh frontend folder ke andar se index.html load hogi
+// 2. Pure home route ('/') par explicit check ke sath index.html deliver karein
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
+    const indexPath = path.resolve(__dirname, 'frontend', 'index.html');
+    
+    res.sendFile(indexPath, (err) => {
+        if (err) {
+            console.error("❌ HTML File Serve Karne Mein Dikkat Aayi:", err);
+            res.status(404).send("Frontend folder ya index.html sahi jagah par nahi mili. Kripya GitHub repository structure check karein.");
+        }
+    });
 });
 // ========================================================
 
