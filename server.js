@@ -2,11 +2,12 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path'); 
+const fs = require('fs');
 const { MongoMemoryServer } = require('mongodb-memory-server');
 
 const app = express();
 
-// PORT Setting: Render automatic process.env.PORT (10000) deta hai, local par 6500 chalega
+// PORT Setting: Render automatic process.env.PORT (10000) leta hai, local par 6500 chalega
 const PORT = process.env.PORT || 6500; 
 
 // Aggressive CORS policy taaki browser/domain dynamic cross-origin error na de
@@ -18,26 +19,28 @@ app.use(cors({
 app.use(express.json());
 
 // ========================================================
-// ⚡ FRONTEND SERVING LOGIC ( Foolproof Absolute Path )
+// ⚡ DYNAMIC FRONTEND SERVING LOGIC (FIXED FOR TRIVIALPAY.HTML)
 // ========================================================
-// 1. Pure root aur frontend static folders ko bind karein taaki CSS, Images sahi se serve ho sakein
+// Static assets (CSS, JS, Images) ko link karne ke liye folders mapping
 app.use(express.static(path.join(__dirname)));
 app.use('/frontend', express.static(path.join(__dirname, 'frontend')));
 
-// 2. Pure home route ('/') par explicit check ke sath index.html deliver karein
+// Main Route jo domain kholte hi trigger hoga
 app.get('/', (req, res) => {
-    const indexPath = path.resolve(__dirname, 'frontend', 'index.html');
-    
-    res.sendFile(indexPath, (err) => {
-        if (err) {
-            console.error("❌ HTML File Serve Karne Mein Dikkat Aayi:", err);
-            res.status(404).send("Frontend folder ya index.html sahi jagah par nahi mili. Kripya GitHub repository structure check karein.");
-        }
-    });
+    // GitHub repository ke mutabiq frontend folder ke andar trivialpay.html ka path
+    const htmlFilePath = path.resolve(__dirname, 'frontend', 'trivialpay.html');
+
+    // Safe Check: Agar file exist karti hai toh serve karein
+    if (fs.existsSync(htmlFilePath)) {
+        return res.sendFile(htmlFilePath);
+    } else {
+        console.error("❌ File nahi mili path par: ", htmlFilePath);
+        return res.status(404).send("Frontend file (trivialpay.html) repository mein nahi mili. Kripya GitHub check karein.");
+    }
 });
 // ========================================================
 
-// Main Schema
+// Database Structure Schema
 const UserSchema = new mongoose.Schema({
     phoneNumber: { type: String, required: false },
     password: { type: String, required: false },
