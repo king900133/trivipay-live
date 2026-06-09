@@ -18,14 +18,17 @@ app.use(cors({
 app.use(express.json());
 
 // ========================================================
-// ⚡ FRONTEND SERVING LOGIC (ISSE CANNOT GET / KHATAM HOGA)
+// ⚡ FRONTEND SERVING LOGIC (FIXED FOR FRONTEND FOLDER)
 // ========================================================
-// Isse aapki images aur styles automatic load ho jayengi
+// 1. Isse public static files serve hongi
 app.use(express.static(__dirname));
 
-// Jab koi direct tivrapay.store kholega, toh index.html load hogi
+// Naya static path taaki frontend folder ke andar ki CSS/Images bhi load ho sakein
+app.use('/frontend', express.static(path.join(__dirname, 'frontend')));
+
+// 2. Jab koi direct tivrapay.store kholega, toh frontend folder ke andar se index.html load hogi
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+    res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
 });
 // ========================================================
 
