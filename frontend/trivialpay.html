@@ -6,67 +6,35 @@
     <title>Tivra Pay</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-        html, body { background-color: #ffffff; width: 100%; height: 100%; overflow-x: hidden; }
-        #app { width: 100%; height: 100%; }
-        
-        /* Updated Main Layout for better balance */
-        main[data-v-6ffee151] { height: 100vh; width: 100%; display: flex; flex-direction: column; align-items: center; background-color: #ffffff; padding: 0 1.2rem; }
-        div[data-v-6ffee151]:not(.loginform) { width: 100%; display: flex; justify-content: center; align-items: center; margin-top: 2.5rem; margin-bottom: 1.5rem; }
-        
-        /* Logo adjusted to be slightly smaller and cleaner */
-        img.logo { width: 70%; max-width: 280px; height: auto; object-fit: contain; }
-        
-        .loginform { width: 100%; max-width: 380px; display: flex; flex-direction: column; }
-        
-        /* Compact Input Fields */
-        .input-field-group { background-color: transparent; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; padding: 10px 4px; margin-bottom: 18px; width: 100%; }
-        .field-icon { display: flex; align-items: center; margin-right: 12px; }
-        .field-icon svg { width: 22px; height: 22px; stroke: #cbd5e1; stroke-width: 1.5; fill: none; }
-        .input-field-group input { border: none; background: transparent; width: 100%; font-size: 16px; outline: none; color: #333333; }
-        .input-field-group input::placeholder { color: #cbd5e1; }
-        
-        /* Buttons and Utilities */
-        .form-utilities { display: flex; justify-content: space-between; align-items: center; font-size: 14px; margin-top: 0px; margin-bottom: 30px; width: 100%; padding: 0 4px; }
-        .remember-me { display: flex; align-items: center; color: #3b82f6; cursor: pointer; }
-        .remember-me input { appearance: none; -webkit-appearance: none; width: 18px; height: 18px; border: 1.5px solid #cbd5e1; border-radius: 50%; margin-right: 10px; outline: none; background-color: #ffffff; cursor: pointer; }
-        .remember-me input:checked { border-color: #3b82f6; background-color: #3b82f6; }
-        .forgot-pass-link { text-decoration: none; color: #3b82f6; cursor: pointer; }
-        .submit-btn { background-color: #2563eb; color: #ffffff; border: none; width: 100%; padding: 14px; border-radius: 28px; font-size: 17px; font-weight: 500; cursor: pointer; box-shadow: 0 4px 8px rgba(37, 99, 235, 0.2); transition: background 0.2s; }
-        .submit-btn:active { background-color: #1d4ed8; }
-        
-        /* Policy Footer */
-        .policy-container-box { margin-top: auto; margin-bottom: 25px; height: 3rem; display: flex; justify-content: center; align-items: center; width: 100%; }
-        .agreement-label { display: flex; align-items: center; font-size: 13px; color: #64748b; cursor: pointer; }
-        .agreement-label input { appearance: none; -webkit-appearance: none; width: 16px; height: 16px; border: 1px solid #2563eb; border-radius: 50%; margin-right: 8px; outline: none; background-color: #2563eb; position: relative; display: flex; align-items: center; justify-content: center; }
-        .agreement-label input::after { content: '✓'; position: absolute; color: white; font-size: 11px; font-weight: bold; }
-        .policy-link { color: #2563eb; text-decoration: none; margin-left: 3px; }
-        
-        /* OTP Modal */
-        .otp-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.4); display: flex; justify-content: center; align-items: center; z-index: 30000; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; padding: 24px; }
-        .otp-modal-overlay.active { opacity: 1; pointer-events: auto; }
-        .otp-modal-container { background-color: #ffffff; width: 100%; max-width: 350px; border-radius: 16px; padding: 28px 20px; position: relative; text-align: center; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15); }
-        .otp-close-btn { position: absolute; top: 12px; right: 14px; font-size: 20px; color: #94a3b8; background: none; border: none; cursor: pointer; outline: none; }
-        .otp-title { font-size: 20px; font-weight: 500; color: #1e293b; margin-top: 10px; margin-bottom: 6px; }
-        .otp-subtitle { font-size: 14px; color: #64748b; margin-bottom: 22px; }
-        .otp-input-container { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 20px; }
-        .otp-box { width: 46px; height: 46px; border: none; border-bottom: 2.5px solid #cbd5e1; text-align: center; font-size: 22px; font-weight: 600; outline: none; background: transparent; }
-        .otp-box:focus { border-bottom-color: #2563eb; }
-        .otp-timer { font-size: 13px; color: #94a3b8; }
-
-        /* Modify Password Screen */
-        .modify-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #ffffff; z-index: 20000; display: none; flex-direction: column; padding: 16px 20px; }
-        .modify-modal-overlay.active { display: flex; }
-        .modify-header { display: flex; align-items: center; width: 100%; height: 48px; position: relative; margin-bottom: 15px; }
-        .modify-back-arrow { font-size: 24px; color: #70798b; cursor: pointer; text-decoration: none; position: absolute; left: 0; padding: 5px; }
-        .modify-header-title { font-size: 19px; font-weight: 600; color: #1a2a47; width: 100%; text-align: center; }
-        .modify-avatar-box { display: flex; flex-direction: column; align-items: center; margin-top: 10px; margin-bottom: 30px; width: 100%; }
-        .modify-avatar-img { width: 82px; height: 82px; border-radius: 50%; background-color: #f1f6ff; display: flex; justify-content: center; align-items: center; margin-bottom: 16px; }
-        .modify-row { display: flex; align-items: center; border-bottom: 1px solid #f1f4f9; padding: 14px 4px; width: 100%; }
-        .modify-label { font-size: 16px; color: #444; width: 90px; font-weight: 500; }
-        .modify-input-box { border: none; outline: none; width: 100%; font-size: 17px; color: #333333; background: transparent; }
-        .modify-submit-btn { background-color: #0084ff; color: #ffffff; border: none; width: 100%; padding: 14px; border-radius: 12px; font-size: 17px; font-weight: 500; cursor: pointer; text-align: center; margin-top: 20px; }
-    </style
+    /* Reset and Base */
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+    html, body { background-color: #ffffff; width: 100%; height: 100%; overflow-x: hidden; }
+    #app { width: 100%; height: 100%; }
+    
+    /* Main container ko center karne ke liye */
+    main[data-v-6ffee151] { height: 100vh; width: 100%; display: flex; flex-direction: column; align-items: center; background-color: #ffffff; padding: 0 1.5rem; }
+    
+    /* Logo container spacing */
+    div[data-v-6ffee151]:not(.loginform) { width: 100%; display: flex; justify-content: center; align-items: center; margin-top: 3rem; margin-bottom: 2rem; }
+    
+    /* Logo Size (Screen shot jaisa) */
+    img.logo { width: 65%; max-width: 250px; height: auto; object-fit: contain; }
+    
+    .loginform { width: 100%; max-width: 380px; display: flex; flex-direction: column; }
+    
+    /* Input Fields (Clean styling) */
+    .input-field-group { background-color: #f8fafc; border: 1px solid #e2e8f0; display: flex; align-items: center; padding: 14px 16px; margin-bottom: 20px; width: 100%; border-radius: 12px; }
+    .field-icon { display: flex; align-items: center; margin-right: 12px; }
+    .field-icon svg { width: 20px; height: 20px; stroke: #94a3b8; stroke-width: 2; fill: none; }
+    .input-field-group input { border: none; background: transparent; width: 100%; font-size: 15px; outline: none; color: #333333; }
+    
+    /* Utilities */
+    .form-utilities { display: flex; justify-content: space-between; align-items: center; font-size: 14px; margin-top: -5px; margin-bottom: 25px; width: 100%; }
+    .submit-btn { background-color: #2563eb; color: #ffffff; border: none; width: 100%; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; }
+    
+    /* Policy */
+    .policy-container-box { margin-top: auto; margin-bottom: 20px; display: flex; justify-content: center; width: 100%; font-size: 13px; }
+</style>
   
 </head>
 <body>
