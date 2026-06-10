@@ -5,35 +5,57 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Tivra Pay</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    <style>
+   <style>
     /* Reset and Base */
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
     html, body { background-color: #ffffff; width: 100%; height: 100%; overflow-x: hidden; }
     #app { width: 100%; height: 100%; }
     
-    /* Main container ko center karne ke liye */
-    main[data-v-6ffee151] { height: 100vh; width: 100%; display: flex; flex-direction: column; align-items: center; background-color: #ffffff; padding: 0 1.5rem; }
+    /* Main container setup */
+    main[data-v-6ffee151] { height: 100vh; width: 100%; display: flex; flex-direction: column; align-items: center; background-color: #ffffff; padding: 0 1.2rem; }
     
-    /* Logo container spacing */
-    div[data-v-6ffee151]:not(.loginform) { width: 100%; display: flex; justify-content: center; align-items: center; margin-top: 3rem; margin-bottom: 2rem; }
+    /* Logo adjustments */
+    div[data-v-6ffee151]:not(.loginform) { width: 100%; display: flex; justify-content: center; align-items: center; margin-top: 2.5rem; margin-bottom: 2rem; }
+    img.logo { width: 60%; max-width: 220px; height: auto; object-fit: contain; }
     
-    /* Logo Size (Screen shot jaisa) */
-    img.logo { width: 65%; max-width: 250px; height: auto; object-fit: contain; }
+    .loginform { width: 100%; max-width: 350px; display: flex; flex-direction: column; }
     
-    .loginform { width: 100%; max-width: 380px; display: flex; flex-direction: column; }
-    
-    /* Input Fields (Clean styling) */
-    .input-field-group { background-color: #f8fafc; border: 1px solid #e2e8f0; display: flex; align-items: center; padding: 14px 16px; margin-bottom: 20px; width: 100%; border-radius: 12px; }
+    /* Input Fields: Transparent background with ONLY bottom border */
+    .input-field-group { 
+        background-color: transparent; 
+        border-bottom: 1px solid #e2e8f0; 
+        display: flex; 
+        align-items: center; 
+        padding: 10px 4px; 
+        margin-bottom: 20px; 
+        width: 100%; 
+    }
     .field-icon { display: flex; align-items: center; margin-right: 12px; }
-    .field-icon svg { width: 20px; height: 20px; stroke: #94a3b8; stroke-width: 2; fill: none; }
-    .input-field-group input { border: none; background: transparent; width: 100%; font-size: 15px; outline: none; color: #333333; }
+    .field-icon svg { width: 20px; height: 20px; stroke: #cbd5e1; stroke-width: 1.5; fill: none; }
+    .input-field-group input { border: none; background: transparent; width: 100%; font-size: 16px; outline: none; color: #333333; }
+    .input-field-group input::placeholder { color: #cbd5e1; }
     
-    /* Utilities */
-    .form-utilities { display: flex; justify-content: space-between; align-items: center; font-size: 14px; margin-top: -5px; margin-bottom: 25px; width: 100%; }
-    .submit-btn { background-color: #2563eb; color: #ffffff; border: none; width: 100%; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; }
+    /* Utilities (Save Password & Forgot) */
+    .form-utilities { display: flex; justify-content: space-between; align-items: center; font-size: 14px; margin-top: 0px; margin-bottom: 25px; width: 100%; padding: 0 4px; }
+    .remember-me { display: flex; align-items: center; color: #64748b; cursor: pointer; }
+    .forgot-pass-link { text-decoration: none; color: #3b82f6; cursor: pointer; }
     
-    /* Policy */
-    .policy-container-box { margin-top: auto; margin-bottom: 20px; display: flex; justify-content: center; width: 100%; font-size: 13px; }
+    /* Button */
+    .submit-btn { 
+        background-color: #2563eb; 
+        color: #ffffff; 
+        border: none; 
+        width: 100%; 
+        padding: 14px; 
+        border-radius: 8px; /* Slightly rounded corners */
+        font-size: 16px; 
+        font-weight: 500; 
+        cursor: pointer; 
+    }
+    
+    /* Footer Agreement */
+    .policy-container-box { margin-top: auto; margin-bottom: 25px; display: flex; justify-content: center; align-items: center; width: 100%; font-size: 13px; color: #64748b; }
+    .policy-link { color: #2563eb; text-decoration: none; margin-left: 3px; }
 </style>
   
 </head>
