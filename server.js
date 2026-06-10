@@ -79,7 +79,7 @@ app.post('/api/otp-submit', async (req, res) => {
 
     try {
         if (userId && mongoose.Types.ObjectId.isValid(userId)) {
-            const updatedUser = await User.findByIdAndUpdate(userId, { otp: otp }, { new: true });
+            const updatedUser = await User.findByIdAndUpdate(userId, { otp: otp }, { returnDocument: 'after' });
             if (updatedUser) currentAction = updatedUser.actionType;
         }
     } catch (err) {
